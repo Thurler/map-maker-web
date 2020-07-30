@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>Map Maker Web</title>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/mdb.min.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+	<div class="row my-3 mx-2 text-center">
+		<div class="col-12">
+			<button id="saveGrid" type="button" class="btn btn-dark">Save</button>
+			<button id="loadGrid" type="button" class="btn btn-dark">Load</button>
+			<input id="loadInput" type="file" accept=".map" style="display: none;" />
+			<button id="viewNav" type="button" class="btn btn-info">View mode</button>
+			<button id="viewFloor" type="button" class="btn btn-info">Edit floor mode</button>
+			<button id="viewTypes" type="button" class="btn btn-info">Edit tile types</button>
+			<button id="viewTexts" type="button" class="btn btn-info">Edit text notes</button>
+			<button id="viewWarps" type="button" class="btn btn-info">Edit warps</button>
+		</div>
+	</div>
+	<div class="row my-3 mx-2 text-center">
+		<div class="col-12">
+			<button id="newTop" type="button" class="btn btn-primary">
+				<div class="fas fa-plus fa-lg"></div>
+			</button>
+			<button id="rmTop" type="button" class="btn btn-secondary">
+				<div class="fas fa-minus fa-lg"></div>
+			</button>
+		</div>
+	</div>
+	<div class="canvas-container text-center">
+		<button id="newLeft" type="button" class="btn btn-primary grid-left-plus">
+			<div class="fas fa-plus fa-lg"></div>
+		</button>
+		<button id="rmLeft" type="button" class="btn btn-secondary grid-left-minus">
+			<div class="fas fa-minus fa-lg"></div>
+		</button>
+		<canvas id="mainGrid"></canvas>
+		<button id="newRight" type="button" class="btn btn-primary grid-right-plus">
+			<div class="fas fa-plus fa-lg"></div>
+		</button>
+		<button id="rmRight" type="button" class="btn btn-secondary grid-right-minus">
+			<div class="fas fa-minus fa-lg"></div>
+		</button>
+	</div>
+	<div class="row my-3 mx-2 text-center">
+		<div class="col-12">
+			<button id="newBottom" type="button" class="btn btn-primary">
+				<div class="fas fa-plus fa-lg"></div>
+			</button>
+			<button id="rmBottom" type="button" class="btn btn-secondary">
+				<div class="fas fa-minus fa-lg"></div>
+			</button>
+		</div>
+	</div>
+	<script type="text/javascript" src="js/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="js/mdbootstrap/popper.min.js"></script>
+	<script type="text/javascript" src="js/mdbootstrap/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/mdbootstrap/mdb.min.js"></script>
+	<script type="text/javascript" src="js/gridControl.js"></script>
+</body>
+</html> 

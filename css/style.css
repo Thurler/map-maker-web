@@ -1,0 +1,47 @@
+.btn-primary {
+  background-color: #009900 !important;
+}
+
+.btn-secondary {
+  background-color: #990000 !important;
+}
+
+.canvas-container {
+	position: relative;
+}
+
+.grid-left-plus {
+	position: absolute;
+	top: calc(50% - 60px);
+	-ms-transform: translateY(-calc(50% - 60px));
+  -ms-transform: translateX(-150%);
+  transform: translateY(-calc(50% - 60px));
+  transform: translateX(-150%);
+}
+
+.grid-left-minus {
+	position: absolute;
+	top: calc(50% + 0px);
+	-ms-transform: translateY(-calc(50% + 0px));
+  -ms-transform: translateX(-150%);
+  transform: translateY(-calc(50% + 0px));
+  transform: translateX(-150%);
+}
+
+.grid-right-plus {
+	position: absolute;
+	top: calc(50% - 60px);
+	-ms-transform: translateY(-calc(50% - 60px));
+  -ms-transform: translateX(32%);
+  transform: translateY(-calc(50% - 60px));
+  transform: translateX(32%);
+}
+
+.grid-right-minus {
+	position: absolute;
+	top: calc(50% + 0px);
+	-ms-transform: translateY(-calc(50% + 0px));
+  -ms-transform: translateX(32%);
+  transform: translateY(-calc(50% + 0px));
+  transform: translateX(32%);
+}
