@@ -59,6 +59,7 @@ const changeTileType = function(pos) {
 	let tile = canvasGrid[tileY][tileX];
 	if (tile.type === TILE_TYPE.Empty) return;
 	let current = tile.type.name;
+	let currentTooltip = tile.type.tooltip;
 	let dropdownOpts = '';
 	Object.keys(TILE_TYPE).forEach((key)=>{
 		if (key === 'Empty') return;
@@ -87,8 +88,12 @@ const changeTileType = function(pos) {
 		let value = $('#dropBtn').html();
 		let chosenKey = Object.keys(TILE_TYPE).find((k)=>TILE_TYPE[k].name===value);
 		tile.type = TILE_TYPE[chosenKey];
-		tile.tooltipArgs = undefined;
-		console.log(canvasGrid[tileY][tileX]);
+		if (tile.note && tile.type.tooltip === textTooltip) {
+			tile.tooltipArgs = {text: tile.note};
+			tile.note = undefined;
+		} else if (currentTooltip !== tile.type.tooltip) {
+			tile.tooltipArgs = undefined;
+		}
 		drawGrid();
 	});
 };
