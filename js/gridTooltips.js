@@ -5,7 +5,7 @@ const textTooltip = function(pos, x, y, args) {
 	let scale = globals.transform.scale;
 	let translate = globals.transform.translate;
 	// Determine text width / height and font size to use
-	ctx.font = 'bold 16px Arial';
+	ctx.font = 'bold 14px Arial';
 	// Split into lines and get max width, combine heights
 	let splitText = args.text.split('\n');
 	let combinedHeight = 0;
@@ -17,7 +17,7 @@ const textTooltip = function(pos, x, y, args) {
 		if (width > textWidth) {
 			textWidth = width;
 		}
-		let height = getTextHeight('Arial', '16px');
+		let height = getTextHeight('Arial', '14px');
 		combinedHeight += height;
 		textHeights.push(height);
 		if (height > maxHeight) {
