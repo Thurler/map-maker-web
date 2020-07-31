@@ -91,9 +91,6 @@ const processMousePosition = function(pos, force) {
 	if (!force && (!canvasGrid[tileY] || !canvasGrid[tileY][tileX])) return;
 	let tile = canvasGrid[tileY][tileX];
 	switch(opMode) {
-		case OPMODE_TYPE.View:
-			updateTooltip(pos, tileX, tileY, tile, force);
-			break;
 		case OPMODE_TYPE.Floor:
 			switch(subOpMode) {
 				case SUBOPMODE_TYPE.FloorAdd:
@@ -106,12 +103,10 @@ const processMousePosition = function(pos, force) {
 			}
 			break;
 		case OPMODE_TYPE.Types:
-			drawGrid();
-			break;
+		case OPMODE_TYPE.View:
 		case OPMODE_TYPE.Notes:
-			updateTooltip(pos, tileX, tileY, tile, force);
-			break;
 		case OPMODE_TYPE.Warps:
+			updateTooltip(pos, tileX, tileY, tile, force);
 			break;
 	}
 };

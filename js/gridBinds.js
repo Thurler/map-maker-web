@@ -3,6 +3,7 @@ $(document).ready(function(){
 	Object.freeze(OPMODE_TYPE);
 	Object.freeze(COLOR_TYPE);
 	Object.freeze(TILE_TYPE);
+	Object.freeze(OPACITY_TYPE);
 
 	// Load template grid
 	canvasGrid = [[
@@ -250,11 +251,31 @@ $(document).ready(function(){
 		};
 	});
 
-	$('#viewNav').click((event)=>opMode=OPMODE_TYPE.View);
-	$('#viewFloor').click((event)=>opMode=OPMODE_TYPE.Floor);
-	$('#viewTypes').click((event)=>opMode=OPMODE_TYPE.Types);
-	$('#viewTexts').click((event)=>opMode=OPMODE_TYPE.Notes);
-	$('#viewWarps').click((event)=>opMode=OPMODE_TYPE.Warps);
+	$('#viewNav').click((event)=>{
+		opMode=OPMODE_TYPE.View;
+		opacityMode=OPACITY_TYPE.None;
+		drawGrid();
+	});
+	$('#viewFloor').click((event)=>{
+		opMode=OPMODE_TYPE.Floor;
+		opacityMode=OPACITY_TYPE.None;
+		drawGrid();
+	});
+	$('#viewTypes').click((event)=>{
+		opMode=OPMODE_TYPE.Types;
+		opacityMode=OPACITY_TYPE.None;
+		drawGrid();
+	});
+	$('#viewTexts').click((event)=>{
+		opMode=OPMODE_TYPE.Notes;
+		opacityMode=OPACITY_TYPE.TextTips;
+		drawGrid();
+	});
+	$('#viewWarps').click((event)=>{
+		opMode=OPMODE_TYPE.Warps;
+		opacityMode=OPACITY_TYPE.Warps;
+		drawGrid();
+	});
 
 	// Draw template grid
 	drawGrid();

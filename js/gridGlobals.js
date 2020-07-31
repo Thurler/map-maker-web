@@ -10,6 +10,11 @@ const SUBOPMODE_TYPE = {
 	FloorAdd: 10,
 	FloorRemove: 11,
 };
+const OPACITY_TYPE = {
+	None: 10,
+	TextTips: 11,
+	Warps: 12,
+};
 const COLOR_TYPE = {
 	Empty: 10,
 	Basic: 11,
@@ -130,4 +135,5 @@ let globals = {
 let canvasGrid = [];
 let prevTooltip = null;
 let opMode = OPMODE_TYPE.View;
+let opacityMode = OPACITY_TYPE.None;
 let subOpMode = null;

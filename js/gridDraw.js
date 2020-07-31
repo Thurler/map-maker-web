@@ -1,4 +1,7 @@
-const drawGridBase = function(ctx, empty) {
+const drawGridBase = function(ctx, empty, opacity) {
+	if (opacity) {
+		ctx.globalAlpha = opacity.value;
+	}
 	ctx.beginPath();
 	let x = y = 0;
 	for (let i = 0; i < canvasGrid.length; i++) {
@@ -6,7 +9,9 @@ const drawGridBase = function(ctx, empty) {
 		for (let j = 0; j < canvasGrid[i].length; j++) {
 			// Only draw empty tiles when empty = true, others when empty = false
 			if (canvasGrid[i][j].type !== TILE_TYPE.Empty ^ empty) {
-				ctx.rect(x, y, globals.tileSize, globals.tileSize);
+				if (!opacity || opacity.func(canvasGrid[i][j])) {
+					ctx.rect(x, y, globals.tileSize, globals.tileSize);
+				}
 			}
 			x += globals.tileSize + globals.gapSize;
 		}
@@ -16,6 +21,9 @@ const drawGridBase = function(ctx, empty) {
 	ctx.fillStyle = globals.tileColors[targetColor];
 	ctx.fill();
 	ctx.closePath();
+	if (opacity) {
+		ctx.globalAlpha = 1;
+	}
 };
 
 const drawGridTiles = function(ctx, type) {
@@ -155,6 +163,18 @@ const drawStairsTiles = function(ctx, type, up) {
 	}
 }
 
+const textOpacityFunc = function(tile) {
+	return (tile.type.tooltip === textTooltip || tile.note);
+};
+
+const warpOpacityFunc = function(tile) {
+	return (
+		tile.type.tooltip === warpOneSrcTooltip ||
+		tile.type.tooltip === warpOneDstTooltip ||
+		tile.type.tooltip === warpTwoTooltip
+	);
+};
+
 const drawGrid = function(target='#mainGrid', forceScale=0) {
 	let canvas = $(target)[0];
 	// Change canvas width and height based on grid size
@@ -194,7 +214,19 @@ const drawGrid = function(target='#mainGrid', forceScale=0) {
 	}
 	// Fill tiles based on whether they are empty or not
 	drawGridBase(ctx, true);
-	drawGridBase(ctx, false);
+	switch(opacityMode) {
+		case OPACITY_TYPE.None:
+			drawGridBase(ctx, false);
+			break;
+		case OPACITY_TYPE.TextTips:
+			drawGridBase(ctx, false, {value: 1, func: textOpacityFunc});
+			drawGridBase(ctx, false, {value: 0.35, func: (t)=>!textOpacityFunc(t)});
+			break;
+		case OPACITY_TYPE.Warps:
+			drawGridBase(ctx, false, {value: 1, func: warpOpacityFunc});
+			drawGridBase(ctx, false, {value: 0.35, func: (t)=>!warpOpacityFunc(t)});
+			break;
+	}
 	drawGridTiles(ctx, TILE_TYPE.Treasure);
 	drawGridTiles(ctx, TILE_TYPE.Event);
 	drawGridTiles(ctx, TILE_TYPE.WarpOneSrc);
