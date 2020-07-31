@@ -12,6 +12,14 @@ const angleToZero = function(v) {
 	return Math.acos(v.x/vectorMagnitude(v));
 };
 
+const swalWithBootstrapButtons = Swal.mixin({
+  customClass: {
+    confirmButton: 'btn btn-success',
+    cancelButton: 'btn btn-danger'
+  },
+  buttonsStyling: false,
+})
+
 const getTextHeight = function(family, size) {
 	let body = document.getElementsByTagName('body')[0];
 	let dummyElement = document.createElement('div');
@@ -80,7 +88,7 @@ const getMousePos = function(event, edgeSnap=false) {
 const processMousePosition = function(pos, force) {
 	let tileX = Math.floor(pos.x / (globals.tileSize + globals.gapSize));
 	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
-	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
+	if (!force && (!canvasGrid[tileY] || !canvasGrid[tileY][tileX])) return;
 	let tile = canvasGrid[tileY][tileX];
 	switch(opMode) {
 		case OPMODE_TYPE.View:
@@ -98,8 +106,10 @@ const processMousePosition = function(pos, force) {
 			}
 			break;
 		case OPMODE_TYPE.Types:
+			drawGrid();
 			break;
 		case OPMODE_TYPE.Notes:
+			updateTooltip(pos, tileX, tileY, tile, force);
 			break;
 		case OPMODE_TYPE.Warps:
 			break;
@@ -108,49 +118,50 @@ const processMousePosition = function(pos, force) {
 
 const updateTooltip = function(pos, tileX, tileY, tile, force) {
 	let newTooltip = null;
-	if (tile.type.tooltip) {
-		if (tile.type.tooltip === textTooltip) {
-			force = true;
-		}
+	if (tile && (tile.type.tooltip || tile.note)) {
 		newTooltip = '' + tileX + ',' + tileY;
 	}
 	if (force || newTooltip !== prevTooltip) {
 		prevTooltip = newTooltip;
 		drawGrid();
-		if (tile.type.tooltip) {
+		if (tile && tile.type.tooltip) {
 			tile.type.tooltip(pos, tileX, tileY, tile.tooltipArgs);
+		}
+		if (tile && tile.note) {
+			textTooltip(pos, tileX, tileY, {text: tile.note});
 		}
 	}
 };
 
 const processMouseDown = function(pos) {
 	switch(opMode) {
-		case OPMODE_TYPE.View:
-			break;
 		case OPMODE_TYPE.Floor:
 			invertTileType(pos);
 			break;
 		case OPMODE_TYPE.Types:
+			changeTileType(pos);
 			break;
 		case OPMODE_TYPE.Notes:
+			addTileNote(pos);
 			break;
 		case OPMODE_TYPE.Warps:
+			break;
+		case OPMODE_TYPE.View:
+		default:
 			break;
 	}
 };
 
 const processMouseUp = function(pos) {
 	switch(opMode) {
-		case OPMODE_TYPE.View:
-			break;
 		case OPMODE_TYPE.Floor:
 			subOpMode = null;
 			break;
+		case OPMODE_TYPE.View:
 		case OPMODE_TYPE.Types:
-			break;
 		case OPMODE_TYPE.Notes:
-			break;
 		case OPMODE_TYPE.Warps:
+		default:
 			break;
 	}
 };
@@ -162,6 +173,7 @@ const invertTileType = function(pos, truecoord=false, dropdraw=false) {
 		tileX = pos.x;
 		tileY = pos.y;
 	}
+	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
 	let tile = canvasGrid[tileY][tileX];
 	// Revert tile type
 	if (tile.type === TILE_TYPE.Empty &&
@@ -204,6 +216,110 @@ const invertTileType = function(pos, truecoord=false, dropdraw=false) {
 	drawGrid();
 };
 
+const dropdownCallback = function(key) {
+	$('#dropBtn').html(TILE_TYPE[key].name);
+};
+
+const changeTileType = function(pos) {
+	let tileX = Math.floor(pos.x / (globals.tileSize + globals.gapSize));
+	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
+	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
+	let tile = canvasGrid[tileY][tileX];
+	if (tile.type === TILE_TYPE.Empty) return;
+	let current = tile.type.name;
+	let dropdownOpts = '';
+	Object.keys(TILE_TYPE).forEach((key)=>{
+		if (key === 'Empty') return;
+		let name = TILE_TYPE[key].name;
+		if (name === current) return;
+		dropdownOpts += '<a class="dropdown-item" onClick="dropdownCallback(\''+
+										key+'\'); return false;" href="#">'+name+'</a>';
+	});
+	swalWithBootstrapButtons.fire({
+		title: 'Change tile type',
+		html: '<strong class="mt-3">This tile is currently a '+current+'.</strong>'+
+					'<p class="mt-1">Please select the new tile type below:</p>'+
+					'<div class="btn-group dropup">'+
+						'<button id="dropBtn" class="btn btn-info dropdown-toggle" '+
+							'type="button" data-toggle="dropdown" aria-haspopup="true" '+
+							'aria-expanded="false">'+current+
+						'</button>'+
+						'<div class="dropdown-menu">'+dropdownOpts+'</div>'+
+					'</div>',
+		reverseButtons: true,
+		showCancelButton: true,
+		confirmButtonText: 'Change it!',
+		cancelButtonText: 'Cancel it!',
+	}).then((result)=>{
+		if (!result.value) return;
+		let value = $('#dropBtn').html();
+		let chosenKey = Object.keys(TILE_TYPE).find((k)=>TILE_TYPE[k].name===value);
+		tile.type = TILE_TYPE[chosenKey];
+		tile.tooltipArgs = undefined;
+		console.log(canvasGrid[tileY][tileX]);
+		drawGrid();
+	});
+};
+
+const addTileNote = function(pos) {
+	let tileX = Math.floor(pos.x / (globals.tileSize + globals.gapSize));
+	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
+	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
+	let tile = canvasGrid[tileY][tileX];
+	if (tile.type === TILE_TYPE.Empty) return;
+	let title = '';
+	let placeholder = '';
+	let value = '';
+	let isNote = false;
+	switch(tile.type) {
+		case TILE_TYPE.Treasure:
+		case TILE_TYPE.LockedTreasure:
+			title = 'Name the treasures in this tile';
+			placeholder = 'Treasure A\nTreasure B'
+			break;
+		case TILE_TYPE.Event:
+			title = 'Describe the event in this tile';
+			placeholder = 'A character joins your party'
+			break;
+		case TILE_TYPE.Boss:
+			title = 'Name the boss in this tile';
+			placeholder = 'Very Tough Boss (Lv99)'
+			break;
+		case TILE_TYPE.EventBoss:
+			title = 'Describe the event and name the boss in this tile';
+			placeholder = 'Cutscene with a character\nVery Tough Boss (Lv99)'
+			break;
+		default:
+			isNote = true;
+			placeholder = 'This tile is important!'
+			title = 'Add a note to this tile';
+			break;
+	}
+	if (isNote && tile.note) {
+		value = tile.note;
+	} else if (!isNote && tile.tooltipArgs && tile.tooltipArgs.text) {
+		value = tile.tooltipArgs.text;
+	}
+	swalWithBootstrapButtons.fire({
+		title: title,
+		inputPlaceholder: placeholder,
+		inputValue: value,
+		input: 'textarea',
+		reverseButtons: true,
+		showCancelButton: true,
+		confirmButtonText: 'OK',
+		cancelButtonText: 'Cancel',
+	}).then((result)=>{
+		if (!result.isConfirmed) return;
+		if (isNote) {
+			tile.note = result.value;
+		} else {
+			tile.tooltipArgs = {text: result.value};
+		}
+		drawGrid();
+	});
+}
+
 const processMouseScroll = function(event) {
 	// Compute new transform
 	let mousePos = getMousePos(event);
@@ -240,15 +356,8 @@ const textTooltip = function(pos, x, y, args) {
 	let ctx = $('#mainGrid')[0].getContext('2d');
 	let scale = globals.transform.scale;
 	let translate = globals.transform.translate;
-	ctx.setTransform(1, 0, 0, 1, 0, 0);
-	if (scale <= 1) {
-		ctx.translate(pos.x*scale, pos.y*scale);
-	} else {
-		let diff = {x: translate.x - pos.x, y: translate.y - pos.y};
-		ctx.translate(pos.x - (scale*diff.x), pos.y - (scale*diff.y)); // TODO FIX
-	}
 	// Determine text width / height and font size to use
-	ctx.font = 'bold 16px Courier New';
+	ctx.font = 'bold 16px Arial';
 	// Split into lines and get max width, combine heights
 	let splitText = args.text.split('\n');
 	let combinedHeight = 0;
@@ -260,7 +369,7 @@ const textTooltip = function(pos, x, y, args) {
 		if (width > textWidth) {
 			textWidth = width;
 		}
-		let height = getTextHeight('Courier New', '16px');
+		let height = getTextHeight('Arial', '16px');
 		combinedHeight += height;
 		textHeights.push(height);
 		if (height > maxHeight) {
@@ -270,16 +379,19 @@ const textTooltip = function(pos, x, y, args) {
 	// Add extra space between lines, proportional to max height
 	combinedHeight += (splitText.length-1)*(maxHeight*0.05);
 	// Draw textbox, fill and stroke it
-	let bottomY = -globals.tileSize/6;
+	let sourceX = (globals.tileSize + globals.gapSize) * x;
+	let sourceY = (globals.tileSize + globals.gapSize) * y;
+	let centerX = sourceX + (globals.tileSize/2);
+	let bottomY = sourceY + (globals.tileSize/6);
 	ctx.beginPath();
 	ctx.lineWidth = globals.stroke.width;
-	ctx.moveTo(0, 0);
-	ctx.lineTo(-globals.tileSize/6, bottomY);
-	ctx.lineTo(-0.55*textWidth, bottomY);
-	ctx.lineTo(-0.55*textWidth, bottomY - combinedHeight - 0.5*maxHeight);
-	ctx.lineTo(0.55*textWidth, bottomY - combinedHeight - 0.5*maxHeight);
-	ctx.lineTo(0.55*textWidth, bottomY);
-	ctx.lineTo(globals.tileSize/6, bottomY);
+	ctx.moveTo(centerX, sourceY + (globals.tileSize/3));
+	ctx.lineTo(centerX - globals.tileSize/6, bottomY);
+	ctx.lineTo(centerX - (0.55*textWidth), bottomY);
+	ctx.lineTo(centerX - (0.55*textWidth), bottomY - combinedHeight - 0.5*maxHeight);
+	ctx.lineTo(centerX + (0.55*textWidth), bottomY - combinedHeight - 0.5*maxHeight);
+	ctx.lineTo(centerX + (0.55*textWidth), bottomY);
+	ctx.lineTo(centerX + globals.tileSize/6, bottomY);
 	ctx.closePath();
 	ctx.fillStyle = globals.stroke.fill;
 	ctx.strokeStyle = globals.stroke.color;
@@ -288,7 +400,7 @@ const textTooltip = function(pos, x, y, args) {
 	// Compute text top-left corner and draw
 	let targetY = bottomY - combinedHeight;
 	for (let i = 0; i < splitText.length; i++) {
-		let textX = -(textWidth/2);
+		let textX = centerX - (textWidth/2);
 		let textY = targetY + (textHeights[i]/2);
 		targetY += (textHeights[i] + (maxHeight*0.05));
 		ctx.fillStyle = globals.stroke.textColor;
@@ -314,13 +426,12 @@ const warpOneSrcTooltip = function(pos, x, y, args) {
 	ctx.beginPath();
 	let vector = {x: centerDX-centerSX, y: centerDY-centerSY};
 	let angle = angleToZero(vector);
+	if (centerSY > centerDY) {
+		angle = -angle;
+	}
 	let dist = vectorMagnitude(vector) - (globals.tileSize/8);
 	ctx.translate(centerSX, centerSY);
-	if (centerSY < centerDY) {
-		ctx.rotate(angle);
-	} else {
-		ctx.rotate(-angle);
-	}
+	ctx.rotate(angle);
 	ctx.translate(-centerSX, -centerSY);
 	ctx.lineWidth = globals.arrow.strokeWidth;
 	ctx.moveTo(centerSX, centerSY - (width/2));
@@ -331,7 +442,7 @@ const warpOneSrcTooltip = function(pos, x, y, args) {
 	ctx.lineTo(centerSX + dist - (globals.tileSize/8), centerSY - (2*width));
 	ctx.lineTo(centerSX + dist - (globals.tileSize/8), centerSY - (width/2));
 	ctx.closePath();
-	ctx.fillStyle = globals.tileColors[COLOR_TYPE.WarpOne];
+	ctx.fillStyle = globals.tileColors[COLOR_TYPE.WarpOneSrc];
 	ctx.strokeStyle = globals.arrow.strokeColor;
 	ctx.stroke();
 	ctx.fill();
@@ -343,7 +454,9 @@ const warpOneSrcTooltip = function(pos, x, y, args) {
 const warpOneDstTooltip = function(pos, x, y, args) {
 	if (!args || !args.src) return;
 	// Compute reverse direction
-	args.src.forEach((s)=>warpOneSrcTooltip(x+s.x, y+s.y, {dest: {x: -s.x, y: -s.y}}));
+	args.src.forEach((s)=>warpOneSrcTooltip(
+		pos, x+s.x, y+s.y, {dest: {x: -s.x, y: -s.y}}
+	));
 };
 
 const warpTwoTooltip = function(pos, x, y, args) {
@@ -364,13 +477,12 @@ const warpTwoTooltip = function(pos, x, y, args) {
 	ctx.beginPath();
 	let vector = {x: centerDX-centerSX, y: centerDY-centerSY};
 	let angle = angleToZero(vector);
+	if (centerSY > centerDY) {
+		angle = -angle;
+	}
 	let dist = vectorMagnitude(vector);
 	ctx.translate(centerSX, centerSY);
-	if (centerSY < centerDY) {
-		ctx.rotate(angle);
-	} else {
-		ctx.rotate(-angle);
-	}
+	ctx.rotate(angle);
 	ctx.translate(-centerSX, -centerSY);
 	ctx.lineWidth = globals.arrow.strokeWidth;
 	ctx.moveTo(centerSX, centerSY);
@@ -388,6 +500,9 @@ const warpTwoTooltip = function(pos, x, y, args) {
 	ctx.strokeStyle = globals.arrow.strokeColor;
 	ctx.stroke();
 	ctx.fill();
+	ctx.translate(centerSX, centerSY);
+	ctx.rotate(-angle);
+	ctx.translate(-centerSX, -centerSY);
 };
 
 const drawGridBase = function(ctx, empty) {
@@ -455,19 +570,119 @@ const drawGridHollowTiles = function(ctx, type) {
 	ctx.closePath();
 };
 
-const drawGrid = function() {
-	let canvas = $('#mainGrid')[0];
+const drawNotes = function(ctx) {
+	ctx.beginPath();
+	let x = y = 0;
+	for (let i = 0; i < canvasGrid.length; i++) {
+		x = 0;
+		for (let j = 0; j < canvasGrid[i].length; j++) {
+			// Only draw tiles that have notes
+			if (canvasGrid[i][j].note) {
+				let diff = (globals.tileSize) / 2;
+				// Draw triangle on top right corner
+				ctx.moveTo(x+globals.tileSize, y);
+				ctx.lineTo(x+globals.tileSize, y+diff);
+				ctx.lineTo(x+globals.tileSize-diff, y);
+			}
+			x += globals.tileSize + globals.gapSize;
+		}
+		y += globals.tileSize + globals.gapSize;
+	}
+	ctx.fillStyle = globals.tileColors.note;
+	ctx.fill();
+	ctx.closePath();
+}
+
+const drawMixedTiles = function(ctx, type, halfA, halfB, top=true) {
+	ctx.beginPath();
+	let x = y = 0;
+	for (let i = 0; i < canvasGrid.length; i++) {
+		x = 0;
+		for (let j = 0; j < canvasGrid[i].length; j++) {
+			// Only draw tiles that match the given type
+			if (canvasGrid[i][j].type === type) {
+				let diff = (globals.tileSize - globals.innerTileSize) / 2;
+				if (top) {
+					// Draw rectangle as a normal tile would
+					ctx.rect(x+diff, y+diff, globals.innerTileSize, globals.innerTileSize);
+				} else {
+					// Draw triangle over bottom right half of rectangle
+					ctx.moveTo(x+diff, y+diff+globals.innerTileSize);
+					ctx.lineTo(x+diff+globals.innerTileSize, y+diff);
+					ctx.lineTo(x+diff+globals.innerTileSize, y+diff+globals.innerTileSize);
+				}
+			}
+			x += globals.tileSize + globals.gapSize;
+		}
+		y += globals.tileSize + globals.gapSize;
+	}
+	ctx.fillStyle = globals.tileColors[(top) ? halfA.color : halfB.color];
+	ctx.fill();
+	ctx.closePath();
+	if (top) drawMixedTiles(ctx, type, halfA, halfB, false);
+}
+
+const drawStairsTiles = function(ctx, type, up) {
+	ctx.lineWidth = 4;
+	ctx.strokeStyle = '#000000';
+	ctx.fillStyle = globals.tileColors[type.color];
+	let x = y = 0;
+	for (let i = 0; i < canvasGrid.length; i++) {
+		x = 0;
+		for (let j = 0; j < canvasGrid[i].length; j++) {
+			// Only draw tiles that match the given type
+			if (canvasGrid[i][j].type === type) {
+				ctx.beginPath();
+				if (!up) {
+					ctx.translate(x+(globals.tileSize/2), y+(globals.tileSize/2));
+					ctx.rotate(Math.PI);
+					ctx.translate(-(x+(globals.tileSize/2)), -(y+(globals.tileSize/2)));
+				}
+				let outer = (globals.tileSize - globals.innerTileSize) / 2;
+				let inner = (globals.innerTileSize/3);
+				ctx.moveTo(x+outer+inner, y+outer+globals.innerTileSize);
+				ctx.lineTo(x+outer+inner, y+outer+(globals.innerTileSize/2));
+				ctx.lineTo(x+outer, y+outer+(globals.innerTileSize/2));
+				ctx.lineTo(x+(globals.tileSize/2), y+outer);
+				ctx.lineTo(x+globals.tileSize-outer, y+outer+(globals.innerTileSize/2));
+				ctx.lineTo(x+globals.tileSize-outer-inner, y+outer+(globals.innerTileSize/2));
+				ctx.lineTo(x+globals.tileSize-outer-inner, y+outer+globals.innerTileSize);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.fill();
+				if (!up) {
+					ctx.translate(x+(globals.tileSize/2), y+(globals.tileSize/2));
+					ctx.rotate(Math.PI);
+					ctx.translate(-(x+(globals.tileSize/2)), -(y+(globals.tileSize/2)));
+				}
+			}
+			x += globals.tileSize + globals.gapSize;
+		}
+		y += globals.tileSize + globals.gapSize;
+	}
+}
+
+const drawGrid = function(target='#mainGrid', forceScale=0) {
+	let canvas = $(target)[0];
 	// Change canvas width and height based on grid size
 	let height = Math.min(canvasGrid.length, globals.maxSize.y);
 	let width = Math.min(canvasGrid[0].length, globals.maxSize.x);
+	if (forceScale > 0) {
+		height = canvasGrid.length;
+		width = canvasGrid[0].length;
+	}
 	canvas.height = height*(globals.tileSize + globals.gapSize) - globals.gapSize;
 	canvas.width = width*(globals.tileSize + globals.gapSize) - globals.gapSize;
+	if (forceScale > 0) {
+		canvas.height = canvas.height * forceScale;
+		canvas.width = canvas.width * forceScale;
+	}
 	let ctx = canvas.getContext('2d');
-	let scale = globals.transform.scale;
+	let scale = (forceScale > 0) ? forceScale : globals.transform.scale;
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	// Background fill
 	ctx.beginPath();
-	if (scale < 1) {
+	if (forceScale === 0 && scale < 1) {
 		ctx.rect(0, 0, canvas.width/scale, canvas.height/scale);
 	} else {
 		ctx.rect(0, 0, canvas.width, canvas.height);
@@ -475,19 +690,30 @@ const drawGrid = function() {
 	ctx.fillStyle = globals.backGroundColor;
 	ctx.fill();
 	ctx.closePath();
-	ctx.translate(globals.transform.translate.x, globals.transform.translate.y);
+	if (forceScale === 0) {
+		ctx.translate(globals.transform.translate.x, globals.transform.translate.y);
+	}
 	ctx.scale(scale, scale);
-	ctx.translate(-globals.transform.translate.x, -globals.transform.translate.y);
-	pad = calcPadTransform();
-	ctx.translate(-pad.x, -pad.y);
+	if (forceScale === 0) {
+		ctx.translate(-globals.transform.translate.x, -globals.transform.translate.y);
+		pad = calcPadTransform();
+		ctx.translate(-pad.x, -pad.y);
+	}
 	// Fill tiles based on whether they are empty or not
 	drawGridBase(ctx, true);
 	drawGridBase(ctx, false);
 	drawGridTiles(ctx, TILE_TYPE.Treasure);
 	drawGridTiles(ctx, TILE_TYPE.Event);
 	drawGridTiles(ctx, TILE_TYPE.WarpOneSrc);
-	drawGridHollowTiles(ctx, TILE_TYPE.WarpOneDst);
 	drawGridTiles(ctx, TILE_TYPE.WarpTwo);
+	drawGridTiles(ctx, TILE_TYPE.LockedTreasure);
+	drawGridTiles(ctx, TILE_TYPE.RelayCircle);
+	drawGridTiles(ctx, TILE_TYPE.Boss);
+	drawGridHollowTiles(ctx, TILE_TYPE.WarpOneDst);
+	drawMixedTiles(ctx, TILE_TYPE.EventBoss, TILE_TYPE.Event, TILE_TYPE.Boss);
+	drawStairsTiles(ctx, TILE_TYPE.StairsUp, true);
+	drawStairsTiles(ctx, TILE_TYPE.StairsDown, false);
+	drawNotes(ctx);
 };
 
 const updateScale = function(width, height) {
@@ -529,33 +755,73 @@ const COLOR_TYPE = {
 	WarpOneSrc: 14,
 	WarpOneDst: 15,
 	WarpTwo: 16,
+	LockedTreasure: 17,
+	RelayCircle: 18,
+	StairsUp: 19,
+	StairsDown: 20,
+	EventBoss: 21,
+	Boss: 22,
 }
 const TILE_TYPE = {
 	Empty: {
 		color: COLOR_TYPE.Empty,
+		name: 'Empty Tile',
 	},
 	Basic: {
 		color: COLOR_TYPE.Basic,
+		name: 'Basic Floor Tile',
 	},
 	Treasure: {
 		color: COLOR_TYPE.Treasure,
+		name: 'Treasure Tile',
+		tooltip: textTooltip,
+	},
+	LockedTreasure: {
+		color: COLOR_TYPE.LockedTreasure,
+		name: 'Locked Treasure Tile',
 		tooltip: textTooltip,
 	},
 	Event: {
 		color: COLOR_TYPE.Event,
+		name: 'Event Tile',
+		tooltip: textTooltip,
+	},
+	EventBoss: {
+		color: COLOR_TYPE.EventBoss,
+		name: 'Event/Boss Tile',
+		tooltip: textTooltip,
+	},
+	Boss: {
+		color: COLOR_TYPE.Boss,
+		name: 'Boss Tile',
 		tooltip: textTooltip,
 	},
 	WarpOneSrc: {
 		color: COLOR_TYPE.WarpOneSrc,
+		name: 'One-way Warp Tile (Source)',
 		tooltip: warpOneSrcTooltip,
 	},
 	WarpOneDst: {
 		color: COLOR_TYPE.WarpOneDst,
+		name: 'One-way Warp Tile (Destination)',
 		tooltip: warpOneDstTooltip,
 	},
 	WarpTwo: {
 		color: COLOR_TYPE.WarpTwo,
+		name: 'Two-way Warp Tile',
 		tooltip: warpTwoTooltip,
+	},
+	RelayCircle: {
+		color: COLOR_TYPE.RelayCircle,
+		name: 'Relay Circle Tile',
+	},
+	StairsUp: {
+		color: COLOR_TYPE.StairsUp,
+		name: 'Stairs (Up) Tile',
+	},
+	StairsDown: {
+		color: COLOR_TYPE.StairsDown,
+		name: 'Stairs (Down) Tile',
 	},
 };
 let globals = {
@@ -579,10 +845,18 @@ let globals = {
 	tileColors: {
 		10: '#000000',
 		11: '#FFFFFF',
-		12: '#00FF00',
+		12: '#00CC00',
 		13: '#FF0000',
-		14: '#4488FF',
-		15: '#0044FF',
+		14: '#2288DD',
+		15: '#2288DD',
+		16: '#0000FF',
+		17: '#006600',
+		18: '#3BD5FE',
+		19: '#FFFF00',
+		20: '#FFFF00',
+		21: '#000000',
+		22: '#7559C8',
+		note: '#FF7B12',
 	},
 	transform: {
 		minScale: 1,
@@ -809,6 +1083,16 @@ $(document).ready(function(){
 		}
 		updateScale(width-1, height);
 		drawGrid();
+	});
+
+	$('#downloadGrid').click((event)=>{
+		drawGrid('#invisibleGrid', 5);
+		let link = document.createElement('a');
+		link.download = 'yourmap.png';
+		link.href = $('#invisibleGrid')[0].toDataURL("image/png");
+		link.style.display = 'none';
+		document.body.appendChild(link);
+		link.click();
 	});
 
 	$('#saveGrid').click((event)=>{
