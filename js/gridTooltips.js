@@ -31,14 +31,33 @@ const textTooltip = function(pos, x, y, args) {
 	let sourceY = (globals.tileSize + globals.gapSize) * y;
 	let centerX = sourceX + (globals.tileSize/2);
 	let bottomY = sourceY + (globals.tileSize/6);
+	let leftPosition = centerX - (0.55*textWidth);
+	let leftPad = 0;
+	if (leftPosition < 5) {
+		leftPad = 5 - leftPosition;
+		leftPosition = 5;
+	}
+	let fullWidth = (globals.tileSize + globals.gapSize) * canvasGrid[0].length;
+	let rightPosition = centerX + (0.55*textWidth);
+	let rightPad = 0;
+	if (rightPosition > fullWidth-5) {
+		rightPad = rightPosition - (fullWidth-5);
+		rightPosition = fullWidth-5;
+	}
+	let topPosition = bottomY - combinedHeight - 0.5*maxHeight;
+	let overTop = (topPosition < 5);
+	if (overTop) {
+		bottomY = sourceY + (5*globals.tileSize/6)
+		topPosition = bottomY + combinedHeight + 0.5*maxHeight
+	}
 	ctx.beginPath();
 	ctx.lineWidth = globals.stroke.width;
-	ctx.moveTo(centerX, sourceY + (globals.tileSize/3));
+	ctx.moveTo(centerX, sourceY + (globals.tileSize/3) + (overTop*globals.tileSize/3));
 	ctx.lineTo(centerX - globals.tileSize/6, bottomY);
-	ctx.lineTo(centerX - (0.55*textWidth), bottomY);
-	ctx.lineTo(centerX - (0.55*textWidth), bottomY - combinedHeight - 0.5*maxHeight);
-	ctx.lineTo(centerX + (0.55*textWidth), bottomY - combinedHeight - 0.5*maxHeight);
-	ctx.lineTo(centerX + (0.55*textWidth), bottomY);
+	ctx.lineTo(leftPosition - rightPad, bottomY);
+	ctx.lineTo(leftPosition - rightPad, topPosition);
+	ctx.lineTo(rightPosition + leftPad, topPosition);
+	ctx.lineTo(rightPosition + leftPad, bottomY);
 	ctx.lineTo(centerX + globals.tileSize/6, bottomY);
 	ctx.closePath();
 	ctx.fillStyle = globals.stroke.fill;
@@ -46,9 +65,9 @@ const textTooltip = function(pos, x, y, args) {
 	ctx.stroke();
 	ctx.fill();
 	// Compute text top-left corner and draw
-	let targetY = bottomY - combinedHeight;
+	let targetY = (overTop) ? bottomY + maxHeight*0.5 : bottomY - combinedHeight;
 	for (let i = 0; i < splitText.length; i++) {
-		let textX = centerX - (textWidth/2);
+		let textX = centerX - (textWidth/2) + leftPad - rightPad;
 		let textY = targetY + (textHeights[i]/2);
 		targetY += (textHeights[i] + (maxHeight*0.05));
 		ctx.fillStyle = globals.stroke.textColor;
