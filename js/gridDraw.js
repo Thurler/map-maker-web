@@ -9,7 +9,7 @@ const drawGridBase = function(ctx, empty, opacity) {
 		for (let j = 0; j < canvasGrid[i].length; j++) {
 			// Only draw empty tiles when empty = true, others when empty = false
 			if (canvasGrid[i][j].type !== TILE_TYPE.Empty ^ empty) {
-				if (!opacity || opacity.func(canvasGrid[i][j])) {
+				if (!opacity || !opacity.func || opacity.func(canvasGrid[i][j])) {
 					ctx.rect(x, y, globals.tileSize, globals.tileSize);
 				}
 			}
@@ -214,18 +214,20 @@ const drawGrid = function(target='#mainGrid', forceScale=0) {
 	}
 	// Fill tiles based on whether they are empty or not
 	drawGridBase(ctx, true);
+	let tooltipFunc = null;
 	switch(opacityMode) {
 		case OPACITY_TYPE.None:
-			drawGridBase(ctx, false);
 			break;
 		case OPACITY_TYPE.TextTips:
-			drawGridBase(ctx, false, {value: 1, func: textOpacityFunc});
-			drawGridBase(ctx, false, {value: 0.35, func: (t)=>!textOpacityFunc(t)});
+			tooltipFunc = textOpacityFunc;
 			break;
 		case OPACITY_TYPE.Warps:
-			drawGridBase(ctx, false, {value: 1, func: warpOpacityFunc});
-			drawGridBase(ctx, false, {value: 0.35, func: (t)=>!warpOpacityFunc(t)});
+			tooltipFunc = warpOpacityFunc;
 			break;
+	}
+	drawGridBase(ctx, false, {value: 1, func: tooltipFunc});
+	if (tooltipFunc) {
+		drawGridBase(ctx, false, {value: 0.35, func: (t)=>!tooltipFunc(t)});
 	}
 	drawGridTiles(ctx, TILE_TYPE.Treasure);
 	drawGridTiles(ctx, TILE_TYPE.Event);
@@ -239,4 +241,16 @@ const drawGrid = function(target='#mainGrid', forceScale=0) {
 	drawStairsTiles(ctx, TILE_TYPE.StairsUp, true);
 	drawStairsTiles(ctx, TILE_TYPE.StairsDown, false);
 	drawNotes(ctx);
+	if (!tooltipFunc) return;
+	ctx.globalAlpha = 0.5;
+	for (let i = 0; i < canvasGrid.length; i++) {
+		for (let j = 0; j < canvasGrid[0].length; j++) {
+			if (tooltipFunc === textOpacityFunc && canvasGrid[i][j].note) {
+				textTooltip(null, j, i, {text: canvasGrid[i][j].note});
+			} else if (tooltipFunc(canvasGrid[i][j])) {
+				canvasGrid[i][j].type.tooltip(null, j, i, canvasGrid[i][j].tooltipArgs);
+			}
+		}
+	}
+	ctx.globalAlpha = 1;
 };
