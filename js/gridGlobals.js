@@ -5,6 +5,7 @@ const OPMODE_TYPE = {
 	Types: 12,
 	Notes: 13,
 	Warps: 14,
+	Walls: 15,
 };
 const SUBOPMODE_TYPE = {
 	FloorAdd: 10,
@@ -97,6 +98,7 @@ let globals = {
 	tileSize: 40,
 	innerTileSize: 30,
 	innerTileHollowSize: 4,
+	wallSize: 3,
 	gapSize: 1,
 	stroke: {
 		width: 6,
@@ -135,6 +137,7 @@ let globals = {
 let canvasGrid = [];
 let prevTooltip = null;
 let warpOrigin = null;
+let wallOrigin = null;
 let opMode = OPMODE_TYPE.View;
 let opacityMode = OPACITY_TYPE.None;
 let subOpMode = null;

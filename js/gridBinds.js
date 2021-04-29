@@ -276,6 +276,11 @@ $(document).ready(function(){
 		opacityMode=OPACITY_TYPE.Warps;
 		drawGrid();
 	});
+	$('#viewWalls').click((event)=>{
+		opMode=OPMODE_TYPE.Walls;
+		opacityMode=OPACITY_TYPE.None;
+		drawGrid();
+	});
 
 	// Draw template grid
 	drawGrid();

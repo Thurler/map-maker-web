@@ -106,6 +106,7 @@ const processMousePosition = function(pos, force) {
 		case OPMODE_TYPE.View:
 		case OPMODE_TYPE.Notes:
 		case OPMODE_TYPE.Warps:
+		case OPMODE_TYPE.Walls:
 			updateTooltip(pos, tileX, tileY, tile, force);
 			break;
 	}
@@ -142,6 +143,9 @@ const processMouseDown = function(pos) {
 		case OPMODE_TYPE.Warps:
 			addWarpSource(pos);
 			break;
+		case OPMODE_TYPE.Walls:
+		  addWallSource(pos);
+		  break;
 		case OPMODE_TYPE.View:
 		default:
 			break;
@@ -155,6 +159,11 @@ const processMouseUp = function(pos) {
 			break;
 		case OPMODE_TYPE.Warps:
 			addWarpDest(pos);
+			drawGrid();
+			break;
+		case OPMODE_TYPE.Walls:
+			addWallDest(pos);
+			drawGrid();
 			break;
 		case OPMODE_TYPE.View:
 		case OPMODE_TYPE.Types:

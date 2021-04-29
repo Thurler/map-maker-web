@@ -176,7 +176,6 @@ const addWarpDest = function(pos) {
 	let tile = canvasGrid[tileY][tileX];
 	let warpDest = {tile: tile, pos: [tileX, tileY]};
 	if (warpOrigin.tile === warpDest.tile) {
-		console.log('hi');
 		if (tile.tooltipArgs && tile.tooltipArgs.dest) {
 			let destX = tileX + tile.tooltipArgs.dest.x;
 			let destY = tileY + tile.tooltipArgs.dest.y;
@@ -213,4 +212,79 @@ const addWarpDest = function(pos) {
 		warpDest.tile.tooltipArgs = {src: [{x: -offsetX, y: -offsetY}]};
 	}
 	warpOrigin = null;
+}
+
+const addWallSource = function(pos) {
+	let tileX = Math.floor(pos.x / (globals.tileSize + globals.gapSize));
+	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
+	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
+	let tile = canvasGrid[tileY][tileX];
+	if (tile.type === TILE_TYPE.Empty) {
+		return;
+	}
+	wallOrigin = {tile: tile, pos: [tileX, tileY]};
+}
+
+const addWallDest = function(pos) {
+	if (!wallOrigin) return;
+	let tileX = Math.floor(pos.x / (globals.tileSize + globals.gapSize));
+	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
+	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
+	let tile = canvasGrid[tileY][tileX];
+	if (tile.type === TILE_TYPE.Empty) {
+		wallOrigin = null;
+		return;
+	}
+	let wallDest = {tile: tile, pos: [tileX, tileY]};
+	if (wallOrigin.tile === wallDest.tile && tile.walls) {
+		tile.walls.forEach((wall)=>{
+			let targetTile;
+			let twall;
+			if (wall === 'left') {
+				targetTile = canvasGrid[tileY][tileX-1];
+				twall = 'right';
+			} else if (wall === 'right') {
+				targetTile = canvasGrid[tileY][tileX+1];
+				twall = 'left';
+			} else if (wall === 'up') {
+				targetTile = canvasGrid[tileY-1][tileX];
+				twall = 'down';
+			} else {
+				targetTile = canvasGrid[tileY+1][tileX];
+				twall = 'up';
+			}
+			if (targetTile && targetTile.walls) {
+				targetTile.walls.splice(targetTile.walls.indexOf(twall), 1);
+			}
+		});
+		tile.walls = null;
+		wallOrigin = null;
+		return;
+	}
+	if (wallOrigin.pos[0] === (wallDest.pos[0] + 1) &&
+		  wallOrigin.pos[1] === wallDest.pos[1]) {
+		if (wallOrigin.tile.walls) wallOrigin.tile.walls.push('left');
+		else wallOrigin.tile.walls = ['left'];
+		if (wallDest.tile.walls) wallDest.tile.walls.push('right');
+		else wallDest.tile.walls = ['right'];
+	} else if (wallOrigin.pos[0] === (wallDest.pos[0] - 1) &&
+		         wallOrigin.pos[1] === wallDest.pos[1]) {
+		if (wallOrigin.tile.walls) wallOrigin.tile.walls.push('right');
+		else wallOrigin.tile.walls = ['right'];
+		if (wallDest.tile.walls) wallDest.tile.walls.push('left');
+		else wallDest.tile.walls = ['left'];
+	} else if (wallOrigin.pos[0] === wallDest.pos[0] &&
+		         wallOrigin.pos[1] === (wallDest.pos[1] + 1)) {
+		if (wallOrigin.tile.walls) wallOrigin.tile.walls.push('up');
+		else wallOrigin.tile.walls = ['up'];
+		if (wallDest.tile.walls) wallDest.tile.walls.push('down');
+		else wallDest.tile.walls = ['down'];
+	} else if (wallOrigin.pos[0] === wallDest.pos[0] &&
+		         wallOrigin.pos[1] === (wallDest.pos[1] - 1)) {
+		if (wallOrigin.tile.walls) wallOrigin.tile.walls.push('down');
+		else wallOrigin.tile.walls = ['down'];
+		if (wallDest.tile.walls) wallDest.tile.walls.push('up');
+		else wallDest.tile.walls = ['up'];
+	}
+	wallOrigin = null;
 }

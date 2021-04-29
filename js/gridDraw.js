@@ -10,7 +10,27 @@ const drawGridBase = function(ctx, empty, opacity) {
 			// Only draw empty tiles when empty = true, others when empty = false
 			if (canvasGrid[i][j].type !== TILE_TYPE.Empty ^ empty) {
 				if (!opacity || !opacity.func || opacity.func(canvasGrid[i][j])) {
-					ctx.rect(x, y, globals.tileSize, globals.tileSize);
+					let l = 0;
+					let u = 0;
+					let w = 0;
+					let h = 0;
+					if (canvasGrid[i][j].walls) {
+						if (canvasGrid[i][j].walls.includes('left')) {
+							l += globals.wallSize;
+							w += -globals.wallSize;
+						}
+						if (canvasGrid[i][j].walls.includes('right')) {
+							w += -globals.wallSize;
+						}
+						if (canvasGrid[i][j].walls.includes('up')) {
+							u += globals.wallSize;
+							h += -globals.wallSize;
+						}
+						if (canvasGrid[i][j].walls.includes('down')) {
+							h += -globals.wallSize;
+						}
+					}
+					ctx.rect(x+l, y+u, globals.tileSize+w, globals.tileSize+h);
 				}
 			}
 			x += globals.tileSize + globals.gapSize;
