@@ -140,6 +140,7 @@ const processMouseDown = function(pos) {
 			addTileNote(pos);
 			break;
 		case OPMODE_TYPE.Warps:
+			addWarpSource(pos);
 			break;
 		case OPMODE_TYPE.View:
 		default:
@@ -152,10 +153,12 @@ const processMouseUp = function(pos) {
 		case OPMODE_TYPE.Floor:
 			subOpMode = null;
 			break;
+		case OPMODE_TYPE.Warps:
+			addWarpDest(pos);
+			break;
 		case OPMODE_TYPE.View:
 		case OPMODE_TYPE.Types:
 		case OPMODE_TYPE.Notes:
-		case OPMODE_TYPE.Warps:
 		default:
 			break;
 	}

@@ -156,3 +156,61 @@ const addTileNote = function(pos) {
 		drawGrid();
 	});
 }
+
+const addWarpSource = function(pos) {
+	let tileX = Math.floor(pos.x / (globals.tileSize + globals.gapSize));
+	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
+	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
+	let tile = canvasGrid[tileY][tileX];
+	if (tile.type !== TILE_TYPE.WarpOneSrc && tile.type !== TILE_TYPE.WarpTwo) {
+		return;
+	}
+	warpOrigin = {tile: tile, pos: [tileX, tileY]};
+}
+
+const addWarpDest = function(pos) {
+	if (!warpOrigin) return;
+	let tileX = Math.floor(pos.x / (globals.tileSize + globals.gapSize));
+	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
+	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
+	let tile = canvasGrid[tileY][tileX];
+	let warpDest = {tile: tile, pos: [tileX, tileY]};
+	if (warpOrigin.tile === warpDest.tile) {
+		console.log('hi');
+		if (tile.tooltipArgs && tile.tooltipArgs.dest) {
+			let destX = tileX + tile.tooltipArgs.dest.x;
+			let destY = tileY + tile.tooltipArgs.dest.y;
+			let destination = canvasGrid[destY][destX];
+			if (destination.tooltipArgs && destination.tooltipArgs.dest) {
+				destination.tooltipArgs = null;
+			} else if (destination.tooltipArgs && destination.tooltipArgs.src) {
+				destination.tooltipArgs.src = destination.tooltipArgs.src.filter((s)=>{
+					return (
+						s.x !== -tile.tooltipArgs.dest.x || s.y !== -tile.tooltipArgs.dest.y
+					);
+				});
+			}
+			tile.tooltipArgs = null;
+		}
+		warpOrigin = null;
+		return;
+	}
+	if (tile.type !== TILE_TYPE.WarpOneDst && tile.type !== TILE_TYPE.WarpTwo) {
+		warpOrigin = null;
+		return;
+	}
+	let offsetX = warpDest.pos[0] - warpOrigin.pos[0];
+	let offsetY = warpDest.pos[1] - warpOrigin.pos[1];
+	warpOrigin.tile.tooltipArgs = {dest: {x: offsetX, y: offsetY}};
+	if (warpDest.tile.type === TILE_TYPE.WarpTwo) {
+		warpDest.tile.tooltipArgs = {dest: {x: -offsetX, y: -offsetY}};
+		warpOrigin = null;
+		return;
+	}
+	if (warpDest.tile.tooltipArgs && warpDest.tile.tooltipArgs.src) {
+		warpDest.tile.tooltipArgs.src.push({x: -offsetX, y: -offsetY});
+	} else {
+		warpDest.tile.tooltipArgs = {src: [{x: -offsetX, y: -offsetY}]};
+	}
+	warpOrigin = null;
+}

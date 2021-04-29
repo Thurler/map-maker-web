@@ -134,6 +134,7 @@ let globals = {
 };
 let canvasGrid = [];
 let prevTooltip = null;
+let warpOrigin = null;
 let opMode = OPMODE_TYPE.View;
 let opacityMode = OPACITY_TYPE.None;
 let subOpMode = null;
