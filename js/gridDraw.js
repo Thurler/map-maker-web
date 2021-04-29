@@ -195,7 +195,7 @@ const warpOpacityFunc = function(tile) {
 	);
 };
 
-const drawGrid = function(target='#mainGrid', forceScale=0) {
+const drawGrid = function(target='#mainGrid', forceScale=0, drawWarps=false) {
 	let canvas = $(target)[0];
 	// Change canvas width and height based on grid size
 	let height = Math.min(canvasGrid.length, globals.maxSize.y);
@@ -261,13 +261,16 @@ const drawGrid = function(target='#mainGrid', forceScale=0) {
 	drawStairsTiles(ctx, TILE_TYPE.StairsUp, true);
 	drawStairsTiles(ctx, TILE_TYPE.StairsDown, false);
 	drawNotes(ctx);
-	if (!tooltipFunc) return;
-	ctx.globalAlpha = 0.5;
+	let warpTypes = [TILE_TYPE.WarpOneSrc, TILE_TYPE.WarpTwo];
+	if (!tooltipFunc && !drawWarps) return;
+	if (!drawWarps) ctx.globalAlpha = 0.5;
 	for (let i = 0; i < canvasGrid.length; i++) {
 		for (let j = 0; j < canvasGrid[0].length; j++) {
-			if (tooltipFunc === textOpacityFunc && canvasGrid[i][j].note) {
+			if (drawWarps && warpTypes.includes(canvasGrid[i][j].type)) {
+				canvasGrid[i][j].type.tooltip(null, j, i, canvasGrid[i][j].tooltipArgs, '#invisibleGrid');
+			} else if (!drawWarps && tooltipFunc === textOpacityFunc && canvasGrid[i][j].note) {
 				textTooltip(null, j, i, {text: canvasGrid[i][j].note});
-			} else if (tooltipFunc(canvasGrid[i][j])) {
+			} else if (!drawWarps && tooltipFunc(canvasGrid[i][j])) {
 				canvasGrid[i][j].type.tooltip(null, j, i, canvasGrid[i][j].tooltipArgs);
 			}
 		}

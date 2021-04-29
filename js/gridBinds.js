@@ -216,7 +216,7 @@ $(document).ready(function(){
 	});
 
 	$('#downloadGrid').click((event)=>{
-		drawGrid('#invisibleGrid', 5);
+		drawGrid('#invisibleGrid', 1, true);
 		let link = document.createElement('a');
 		link.download = 'yourmap.png';
 		link.href = $('#invisibleGrid')[0].toDataURL("image/png");

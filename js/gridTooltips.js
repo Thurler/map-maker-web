@@ -75,7 +75,7 @@ const textTooltip = function(pos, x, y, args) {
 	}
 };
 
-const warpOneSrcTooltip = function(pos, x, y, args) {
+const warpOneSrcTooltip = function(pos, x, y, args, target='#mainGrid') {
 	if (!args || !args.dest) return;
 	// Compute tile coordinates
 	let sourceX = (globals.tileSize + globals.gapSize) * x;
@@ -89,7 +89,7 @@ const warpOneSrcTooltip = function(pos, x, y, args) {
 	let centerDX = destX + (globals.tileSize/2);
 	let centerDY = destY + (globals.tileSize/2);
 	let width = globals.arrow.width;
-	let ctx = $('#mainGrid')[0].getContext('2d');
+	let ctx = $(target)[0].getContext('2d');
 	ctx.beginPath();
 	let vector = {x: centerDX-centerSX, y: centerDY-centerSY};
 	let angle = angleToZero(vector);
@@ -126,7 +126,7 @@ const warpOneDstTooltip = function(pos, x, y, args) {
 	));
 };
 
-const warpTwoTooltip = function(pos, x, y, args) {
+const warpTwoTooltip = function(pos, x, y, args, target='#mainGrid') {
 	if (!args || !args.dest) return;
 	// Compute tile coordinates
 	let sourceX = (globals.tileSize + globals.gapSize) * x;
@@ -140,7 +140,7 @@ const warpTwoTooltip = function(pos, x, y, args) {
 	let centerDX = destX + (globals.tileSize/2);
 	let centerDY = destY + (globals.tileSize/2);
 	let width = globals.arrow.width;
-	let ctx = $('#mainGrid')[0].getContext('2d');
+	let ctx = $(target)[0].getContext('2d');
 	ctx.beginPath();
 	let vector = {x: centerDX-centerSX, y: centerDY-centerSY};
 	let angle = angleToZero(vector);
