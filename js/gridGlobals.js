@@ -30,6 +30,9 @@ const COLOR_TYPE = {
 	StairsDown: 20,
 	EventBoss: 21,
 	Boss: 22,
+	RedSwitch: 23,
+	GreenSwitch: 24,
+	BlueSwitch: 25,
 }
 const TILE_TYPE = {
 	Empty: {
@@ -92,6 +95,42 @@ const TILE_TYPE = {
 		color: COLOR_TYPE.StairsDown,
 		name: 'Stairs (Down) Tile',
 	},
+	RedSwitch: {
+		color: COLOR_TYPE.RedSwitch,
+		name: 'Red Switch Tile',
+	},
+	RedOnGate: {
+		color: COLOR_TYPE.RedSwitch,
+		name: 'Red Switch ON Gate',
+	},
+	RedOffGate: {
+		color: COLOR_TYPE.RedSwitch,
+		name: 'Red Switch OFF Gate',
+	},
+	GreenSwitch: {
+		color: COLOR_TYPE.GreenSwitch,
+		name: 'Green Switch Tile',
+	},
+	GreenOnGate: {
+		color: COLOR_TYPE.GreenSwitch,
+		name: 'Green Switch ON Gate',
+	},
+	GreenOffGate: {
+		color: COLOR_TYPE.GreenSwitch,
+		name: 'Green Switch OFF Gate',
+	},
+	BlueSwitch: {
+		color: COLOR_TYPE.BlueSwitch,
+		name: 'Blue Switch Tile',
+	},
+	BlueOnGate: {
+		color: COLOR_TYPE.BlueSwitch,
+		name: 'Blue Switch ON Gate',
+	},
+	BlueOffGate: {
+		color: COLOR_TYPE.BlueSwitch,
+		name: 'Blue Switch OFF Gate',
+	},
 };
 let globals = {
 	maxSize: {x: 16, y: 16},
@@ -126,6 +165,9 @@ let globals = {
 		20: '#FFFF00',
 		21: '#000000',
 		22: '#7559C8',
+		23: '#FF0000',
+		24: '#00CC00',
+		25: '#0000FF',
 		note: '#FF7B12',
 	},
 	transform: {

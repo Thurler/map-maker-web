@@ -181,7 +181,74 @@ const drawStairsTiles = function(ctx, type, up) {
 		}
 		y += globals.tileSize + globals.gapSize;
 	}
-}
+};
+
+const drawCircleTiles = function(ctx, type) {
+	ctx.beginPath();
+	let x = y = 0;
+	for (let i = 0; i < canvasGrid.length; i++) {
+		x = 0;
+		for (let j = 0; j < canvasGrid[i].length; j++) {
+			// Only draw tiles that match the given type
+			if (canvasGrid[i][j].type === type) {
+				let center = globals.tileSize / 2;
+				ctx.arc(x+center, y+center, globals.innerTileSize / 2, 0, 2*Math.PI);
+			}
+			x += globals.tileSize + globals.gapSize;
+		}
+		y += globals.tileSize + globals.gapSize;
+	}
+	ctx.fillStyle = globals.tileColors[type.color];
+	ctx.fill();
+	ctx.closePath();
+};
+
+const drawHollowCircleTiles = function(ctx, type) {
+	drawCircleTiles(ctx, type);
+	ctx.beginPath();
+	let x = y = 0;
+	for (let i = 0; i < canvasGrid.length; i++) {
+		x = 0;
+		for (let j = 0; j < canvasGrid[i].length; j++) {
+			// Only draw tiles that match the given type
+			if (canvasGrid[i][j].type === type) {
+				let center = globals.tileSize / 2;
+				let radius = (globals.innerTileSize - globals.innerTileHollowSize) / 3;
+				ctx.arc(x+center, y+center, radius, 0, 2*Math.PI);
+			}
+			x += globals.tileSize + globals.gapSize;
+		}
+		y += globals.tileSize + globals.gapSize;
+	}
+	ctx.fillStyle = globals.tileColors[COLOR_TYPE.Basic];
+	ctx.fill();
+	ctx.closePath();
+};
+
+const drawCrossCircleTiles = function(ctx, type) {
+	drawHollowCircleTiles(ctx, type);
+	ctx.beginPath();
+	ctx.lineWidth = globals.stroke.width;
+	ctx.strokeStyle = globals.tileColors[type.color];
+	let x = y = 0;
+	for (let i = 0; i < canvasGrid.length; i++) {
+		x = 0;
+		for (let j = 0; j < canvasGrid[i].length; j++) {
+			// Only draw tiles that match the given type
+			if (canvasGrid[i][j].type === type) {
+				let center = globals.tileSize / 2;
+				let radius = (globals.innerTileSize - globals.innerTileHollowSize) / 3;
+				let modifier = Math.sin(Math.PI / 4) * radius;
+				ctx.moveTo(x+center+modifier, y+center-modifier);
+				ctx.lineTo(x+center-modifier, y+center+modifier);
+			}
+			x += globals.tileSize + globals.gapSize;
+		}
+		y += globals.tileSize + globals.gapSize;
+	}
+	ctx.stroke();
+	ctx.closePath();
+};
 
 const textOpacityFunc = function(tile) {
 	return (tile.type.tooltip === textTooltip || tile.note);
@@ -260,6 +327,15 @@ const drawGrid = function(target='#mainGrid', forceScale=0, drawWarps=false) {
 	drawMixedTiles(ctx, TILE_TYPE.EventBoss, TILE_TYPE.Event, TILE_TYPE.Boss);
 	drawStairsTiles(ctx, TILE_TYPE.StairsUp, true);
 	drawStairsTiles(ctx, TILE_TYPE.StairsDown, false);
+	drawCircleTiles(ctx, TILE_TYPE.RedSwitch);
+	drawCircleTiles(ctx, TILE_TYPE.GreenSwitch);
+	drawCircleTiles(ctx, TILE_TYPE.BlueSwitch);
+	drawHollowCircleTiles(ctx, TILE_TYPE.RedOnGate);
+	drawHollowCircleTiles(ctx, TILE_TYPE.GreenOnGate);
+	drawHollowCircleTiles(ctx, TILE_TYPE.BlueOnGate);
+	drawCrossCircleTiles(ctx, TILE_TYPE.RedOffGate);
+	drawCrossCircleTiles(ctx, TILE_TYPE.GreenOffGate);
+	drawCrossCircleTiles(ctx, TILE_TYPE.BlueOffGate);
 	drawNotes(ctx);
 	let warpTypes = [TILE_TYPE.WarpOneSrc, TILE_TYPE.WarpTwo];
 	if (!tooltipFunc && !drawWarps) return;
