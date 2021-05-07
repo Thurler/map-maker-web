@@ -215,8 +215,8 @@ const updateScale = function(width, height) {
 const convertGrid = function() {
 	for (let i = 0; i < canvasGrid.length; i++) {
 		for (let j = 0; j < canvasGrid[i].length; j++) {
-			let color = canvasGrid[i][j].type.color;
-			let key = Object.keys(COLOR_TYPE).find(k=>COLOR_TYPE[k]===color);
+			let name = canvasGrid[i][j].type.name;
+			let key = Object.keys(TILE_TYPE).find(k=>TILE_TYPE[k].name===name);
 			canvasGrid[i][j].type = TILE_TYPE[key];
 		}
 	}
