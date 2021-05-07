@@ -72,12 +72,14 @@ const changeTileType = function(pos) {
 		title: 'Change tile type',
 		html: '<strong class="mt-3">This tile is currently a '+current+'.</strong>'+
 					'<p class="mt-1">Please select the new tile type below:</p>'+
-					'<div class="btn-group dropup">'+
+					'<div class="btn-group dropright">'+
 						'<button id="dropBtn" class="btn btn-info dropdown-toggle" '+
 							'type="button" data-toggle="dropdown" aria-haspopup="true" '+
 							'aria-expanded="false">'+current+
 						'</button>'+
-						'<div class="dropdown-menu">'+dropdownOpts+'</div>'+
+						'<div class="dropdown-menu">'+
+							dropdownOpts+
+						'</div>'+
 					'</div>',
 		reverseButtons: true,
 		showCancelButton: true,
