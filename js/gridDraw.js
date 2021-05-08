@@ -258,6 +258,7 @@ const warpOpacityFunc = function(tile) {
 	return (
 		tile.type.tooltip === warpOneSrcTooltip ||
 		tile.type.tooltip === warpOneDstTooltip ||
+		tile.type.tooltip === warpMultiSrcTooltip ||
 		tile.type.tooltip === warpTwoTooltip
 	);
 };
@@ -319,6 +320,7 @@ const drawGrid = function(target='#mainGrid', forceScale=0, drawWarps=false) {
 	drawGridTiles(ctx, TILE_TYPE.Treasure);
 	drawGridTiles(ctx, TILE_TYPE.Event);
 	drawGridTiles(ctx, TILE_TYPE.WarpOneSrc);
+	drawGridTiles(ctx, TILE_TYPE.WarpMultiSrc);
 	drawGridTiles(ctx, TILE_TYPE.WarpTwo);
 	drawGridTiles(ctx, TILE_TYPE.LockedTreasure);
 	drawGridTiles(ctx, TILE_TYPE.RelayCircle);

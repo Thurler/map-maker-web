@@ -164,7 +164,9 @@ const addWarpSource = function(pos) {
 	let tileY = Math.floor(pos.y / (globals.tileSize + globals.gapSize));
 	if (!canvasGrid[tileY] || !canvasGrid[tileY][tileX]) return;
 	let tile = canvasGrid[tileY][tileX];
-	if (tile.type !== TILE_TYPE.WarpOneSrc && tile.type !== TILE_TYPE.WarpTwo) {
+	if (tile.type !== TILE_TYPE.WarpOneSrc &&
+		  tile.type !== TILE_TYPE.WarpMultiSrc &&
+		  tile.type !== TILE_TYPE.WarpTwo) {
 		return;
 	}
 	warpOrigin = {tile: tile, pos: [tileX, tileY]};
@@ -202,7 +204,15 @@ const addWarpDest = function(pos) {
 	}
 	let offsetX = warpDest.pos[0] - warpOrigin.pos[0];
 	let offsetY = warpDest.pos[1] - warpOrigin.pos[1];
-	warpOrigin.tile.tooltipArgs = {dest: {x: offsetX, y: offsetY}};
+	if (warpOrigin.tile.type === TILE_TYPE.WarpMultiSrc) {
+		if (warpOrigin.tile.tooltipArgs && warpOrigin.tile.tooltipArgs.dest) {
+			warpOrigin.tile.tooltipArgs.dest.push({x: offsetX, y: offsetY});
+		} else {
+			warpOrigin.tile.tooltipArgs = {dest: [{x: offsetX, y: offsetY}]};
+		}
+	} else {
+		warpOrigin.tile.tooltipArgs = {dest: {x: offsetX, y: offsetY}};
+	}
 	if (warpDest.tile.type === TILE_TYPE.WarpTwo) {
 		warpDest.tile.tooltipArgs = {dest: {x: -offsetX, y: -offsetY}};
 		warpOrigin = null;

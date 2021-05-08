@@ -118,6 +118,13 @@ const warpOneSrcTooltip = function(pos, x, y, args, target='#mainGrid') {
 	ctx.translate(-centerSX, -centerSY);
 };
 
+const warpMultiSrcTooltip = function(pos, x, y, args) {
+	if (!args || !args.dest) return;
+	args.dest.forEach((d)=>warpOneSrcTooltip(
+		pos, x, y, {dest: {x: d.x, y: d.y}}
+	));
+}
+
 const warpOneDstTooltip = function(pos, x, y, args) {
 	if (!args || !args.src) return;
 	// Compute reverse direction

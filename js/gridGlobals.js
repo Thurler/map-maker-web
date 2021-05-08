@@ -73,6 +73,11 @@ const TILE_TYPE = {
 		name: 'One-way Warp Tile (Source)',
 		tooltip: warpOneSrcTooltip,
 	},
+	WarpMultiSrc: {
+		color: COLOR_TYPE.WarpOneSrc,
+		name: 'Multi-way Warp Tile (Source)',
+		tooltip: warpMultiSrcTooltip,
+	},
 	WarpOneDst: {
 		color: COLOR_TYPE.WarpOneDst,
 		name: 'One-way Warp Tile (Destination)',
